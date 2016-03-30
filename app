@@ -11,14 +11,23 @@ int boardLed = D7; // This is the LED that is already on your device.
 // On the Core, it's the LED in the upper right hand corner.
 // On the Photon, it's next to the D7 pin.
 
-int photoresistor = A0; // This is where your photoresistor is plugged in. The other side goes to the "power" pin (below).
+int doorSensor = D1;  // This is where your magnetic door switch is plugged in. The other side goes to the "powerDoor" pin (below).
+int knockSensor = A0;  // This is where your vibration sensor is plugged in. The other side goes to the "powerKnock" pin (below).
+int soundSensor = A; // This is where your sound sensor is plugged in. The other side goes to the "powerSound" pin (below).
 
-int power = A5; // This is the other end of your photoresistor. The other side is plugged into the "photoresistor" pin (above).
+int powerDoor = A4; // This is the other end of your photoresistor. The other side is plugged into the "doorSensor" pin (above).
+int powerKnock = A5; // This is the other end of your photoresistor. The other side is plugged into the "knockSensor" pin (above).
+int powerSound = A6; // This is the other end of your photoresistor. The other side is plugged into the "soundSensor" pin (above).
+
 
 // The following values get set up when your device boots up and calibrates:
 int intactValue; // This is the average value that the photoresistor reads when the beam is intact.
 int brokenValue; // This is the average value that the photoresistor reads when the beam is broken.
-int beamThreshold; // This is a value halfway between ledOnValue and ledOffValue, above which we will assume the led is on and below which we will assume it is off.
+
+int soundValue = 0;  // This is the value that the sound sensor reads.
+
+int knockThreshold = 100; // This is a value halfway between ledOnValue and ledOffValue, above which we will assume the led is on and below which we will assume it is off.
+int soundThreshold = 100; // This is a value halfway between ledOnValue and ledOffValue, above which we will assume the led is on and below which we will assume it is off.
 
 bool beamBroken = false; // This flag will be used to mark if we have a new status or now. We will use it in the loop.
 
@@ -29,7 +38,11 @@ void setup() {
   pinMode(led,OUTPUT); // Our LED pin is output (lighting up the LED)
   pinMode(boardLed,OUTPUT); // Our on-board LED is output as well
   pinMode(photoresistor,INPUT);  // Our photoresistor pin is input (reading the photoresistor)
-  pinMode(power,OUTPUT); // The pin powering the photoresistor is output (sending out consistent power)
+  
+  pinMode(powerDoor,OUTPUT); // The pin powering the photoresistor is output (sending out consistent power)
+  pinMode(powerKnock,OUTPUT); // The pin powering the photoresistor is output (sending out consistent power)
+  pinMode(powerSound,OUTPUT); // The pin powering the photoresistor is output (sending out consistent power)
+
 
   // Next, write the power of the photoresistor to be the maximum possible, which is 4095 in analog.
   digitalWrite(power,HIGH);
@@ -143,14 +156,44 @@ void loop() {
     if(!laundering) {
       doorClosed = false;
       //send itfff alert saying wahser is off & door is closed
+      // 10digitnumner@tmomail.net
       }
   }
   
   /* Now, we know that washer is running. 
-     We are going to check the washer every 15 minutes if it is finish running.
+     We are going to check the washer status using vibration sensor & sound sensor.
   while(doorClosed) {
     
+    soundValue = analogRead(knockSensor);
+    
+    if (soundValue >= threshold) {
+     // toggle the status of the ledPin:
+     ledState = !ledState;
+     // update the LED pin itself:
+     digitalWrite(ledPin, ledState);
+     
+     vibrationCheck();
+     launderyFinish = true;
+   }
+   
+   // We'll leave it on for 1 second...
+   delay(1000); 
+  }  
+    
   
+  while(launderyFinish) {
+    // send ifttt sms message that whaser is finished
+    
+    // Check for door status
+    doorStatus = digitalRead(door);
+  
+    // if door is open, then stop send sms message
+    if(doorStatus == LOW) {
+      break;
+    }
+    
+    delay(1800000); send message every 30 minutes
+  }
 
   
 
@@ -208,5 +251,8 @@ void loop() {
 bool vibrationCheck() {
   if (analogRead(vibration) > vibThreshold) {
     laundering = true;
+  }
+  else {
+    laudering = false;
   }
 }
