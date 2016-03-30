@@ -108,6 +108,29 @@ void loop() {
 
   We'll also turn the D7 LED on when the Photoresistor detects a beam breakagse.
   */
+  
+  /************************************************************
+   Check for door status
+   ************************************************************/
+   
+  doorStatus = digitalRead(door);
+  
+  if(doorStatus == HIGH) {
+    doorClosed = true;
+    digitalWrite(boardLed, HIGH);
+  }
+  else {
+    digitalWrite(boardLed, LOW);
+  }
+
+  
+  
+  
+  while(doorClosed) {
+    
+  
+
+  
 
   if (analogRead(photoresistor)>beamThreshold) {
 
