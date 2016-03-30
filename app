@@ -118,14 +118,36 @@ void loop() {
   if(doorStatus == HIGH) {
     doorClosed = true;
     digitalWrite(boardLed, HIGH);
+    delay(300000);  // wait for 5 minutes
   }
   else {
     digitalWrite(boardLed, LOW);
   }
 
+
+
+  /* Check for vibration of the washer.
+     Only check for vibration if the washer door is closed. */
+  if(doorClosed) {
+
+    // It will set laundering true if it detects vibration.
+    vibrationCheck();
+    
+    // In case it did not detect the vibration of the washer at first place then it will check it again after 10 minutes.
+    if(!laundering) {
+      delay(600000);
+      vibrationCheck();
+    }
+    
+    // If the door is closed by accident or there is sensor error when washer is not running, send a txt message.
+    if(!laundering) {
+      doorClosed = false;
+      //send itfff alert saying wahser is off & door is closed
+      }
+  }
   
-  
-  
+  /* Now, we know that washer is running. 
+     We are going to check the washer every 15 minutes if it is finish running.
   while(doorClosed) {
     
   
@@ -180,4 +202,11 @@ void loop() {
       }
   }
 
+}
+
+
+bool vibrationCheck() {
+  if (analogRead(vibration) > vibThreshold) {
+    laundering = true;
+  }
 }
